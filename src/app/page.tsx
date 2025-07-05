@@ -1,103 +1,169 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+
+const EmployeeFormUI = () => {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <Card className="w-full max-w-2xl mx-auto shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+          <CardTitle className="text-2xl font-bold text-center">Employee Registration Form</CardTitle>
+          <CardDescription className="text-center text-blue-100">
+            Please fill in all the required information below
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-8">
+          <form className="space-y-6">
+            {/* Full Name */}
+            <div className="space-y-2">
+              <Label htmlFor="fullName" className="text-sm font-semibold text-gray-700">
+                Full Name *
+              </Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter your full name"
+                className="focus:border-blue-500"
+                maxLength={100}
+              />
+            </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {/* Age and Salary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="age" className="text-sm font-semibold text-gray-700">
+                  Age *
+                </Label>
+                <Input
+                  id="age"
+                  type="number"
+                  placeholder="Enter your age"
+                  min="18"
+                  max="100"
+                  className="focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="salary" className="text-sm font-semibold text-gray-700">
+                  Salary (₹) *
+                </Label>
+                <Input
+                  id="salary"
+                  type="number"
+                  placeholder="Enter salary amount"
+                  min="1"
+                  step="1"
+                  className="focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Work Description */}
+            <div className="space-y-2">
+              <Label htmlFor="workEmployedToDo" className="text-sm font-semibold text-gray-700">
+                Work/Job Description *
+              </Label>
+              <Textarea
+                id="workEmployedToDo"
+                placeholder="Describe the work you are employed to do (minimum 10 characters)"
+                rows={4}
+                maxLength={500}
+                className="focus:border-blue-500 resize-none"
+              />
+              <div className="flex justify-between items-center">
+                <p className="text-xs text-gray-500 ml-auto">
+                  0/500 characters
+                </p>
+              </div>
+            </div>
+
+            {/* Aadhar and Phone */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="aadharNumber" className="text-sm font-semibold text-gray-700">
+                  Aadhar Card Number *
+                </Label>
+                <Input
+                  id="aadharNumber"
+                  type="text"
+                  placeholder="Enter 12-digit Aadhar number"
+                  maxLength={12}
+                  className="focus:border-blue-500 font-mono"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber" className="text-sm font-semibold text-gray-700">
+                  Phone Number *
+                </Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="Enter 10-digit phone number"
+                  maxLength={10}
+                  className="focus:border-blue-500 font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Gender */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-gray-700">Gender *</Label>
+              <RadioGroup
+                className="flex flex-row space-x-8"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="male" id="male" />
+                  <Label htmlFor="male" className="cursor-pointer">Male</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="female" id="female" />
+                  <Label htmlFor="female" className="cursor-pointer">Female</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="other" id="other" />
+                  <Label htmlFor="other" className="cursor-pointer">Other</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Marital Status */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-gray-700">Marital Status *</Label>
+              <Select>
+                <SelectTrigger className="focus:border-blue-500">
+                  <SelectValue placeholder="Select marital status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bachelor">Bachelor</SelectItem>
+                  <SelectItem value="married">Married</SelectItem>
+                  <SelectItem value="has-family">Has Family (Unmarried)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-4">
+              <Button 
+                type="submit" 
+                className="w-full bg-blue-600 hover:bg-blue-700 transition-colors duration-200 py-3 text-lg font-semibold" 
+              >
+                Submit Registration
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default EmployeeFormUI;
