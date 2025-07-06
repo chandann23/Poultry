@@ -1,135 +1,387 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import prisma from '@/lib/prisma'
+"use client";
 
-export default async function EmployeeDashboard() {
-  const employees = await prisma.employee.findMany({
-    orderBy: {
-      createdAt: 'desc'
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
+import { 
+  Search, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Loader2, 
+  RefreshCw, 
+  User, 
+  Phone, 
+  CreditCard,
+  IndianRupee
+} from 'lucide-react';
+import { useEmployees, useDeleteEmployee, type Employee } from '@/hooks/useEmployee';
+import EmployeeForm from '@/components/EmployeeForm';
+
+const EmployeeList: React.FC = () => {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const limit = 10;
+  
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error, 
+    refetch, 
+    isFetching 
+  } = useEmployees({ page, limit, search });
+
+  const deleteEmployee = useDeleteEmployee();
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1); // Reset to first page when searching
+  };
+
+  const handleEdit = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsEditMode(true);
+    setIsFormOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedEmployee(null);
+    setIsEditMode(false);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = async (employeeId: string) => {
+    try {
+      await deleteEmployee.mutateAsync(employeeId);
+    } catch (error) {
+      console.error('Delete error:', error);
     }
-  })
+  };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase()
-  }
+  const handleFormSuccess = () => {
+    setIsFormOpen(false);
+    setSelectedEmployee(null);
+    refetch();
+  };
 
-  const formatSalary = (salary: any) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(Number(salary))
-  }
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
-  const getGenderColor = (gender: string) => {
-    switch(gender.toLowerCase()) {
-      case 'male': return 'bg-blue-100 text-blue-800'
-      case 'female': return 'bg-pink-100 text-pink-800'
-      default: return 'bg-purple-100 text-purple-800'
-    }
-  }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
-  const getMaritalStatusColor = (status: string) => {
-    switch(status.toLowerCase()) {
-      case 'married': return 'bg-green-100 text-green-800'
-      case 'bachelor': return 'bg-yellow-100 text-yellow-800'
-      case 'has-family': return 'bg-orange-100 text-orange-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
+  const getGenderBadge = (gender: string) => {
+    const colors = {
+      MALE: 'bg-blue-100 text-blue-800',
+      FEMALE: 'bg-pink-100 text-pink-800',
+      OTHER: 'bg-gray-100 text-gray-800',
+    };
+    return colors[gender as keyof typeof colors] || colors.OTHER;
+  };
+
+  const getMaritalStatusBadge = (status: string) => {
+    const colors = {
+      BACHELOR: 'bg-green-100 text-green-800',
+      MARRIED: 'bg-purple-100 text-purple-800',
+      HAS_FAMILY: 'bg-orange-100 text-orange-800',
+    };
+    return colors[status as keyof typeof colors] || colors.BACHELOR;
+  };
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <Card className="max-w-4xl mx-auto">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-red-600 mb-2">Error Loading Employees</h2>
+              <p className="text-gray-600 mb-4">
+                {error?.message || 'Something went wrong'}
+              </p>
+              <Button onClick={() => refetch()} variant="outline">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-            Employee Directory
-          </h1>
-          <p className="mt-3 text-xl text-gray-500">
-            Comprehensive overview of all employees
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <Card className="max-w-7xl mx-auto">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle className="text-2xl font-bold text-gray-900">
+                Employee Management
+              </CardTitle>
+              <p className="text-gray-600 mt-1">
+                Manage your employee records
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-80">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search employees..."
+                  value={search}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Employee
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {isEditMode ? 'Edit Employee' : 'Add New Employee'}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {isEditMode 
+                        ? 'Update the employee information below.' 
+                        : 'Fill in the details to add a new employee.'
+                      }
+                    </DialogDescription>
+                  </DialogHeader>
+                  <EmployeeForm 
+                    employee={selectedEmployee || undefined}
+                    onSuccess={handleFormSuccess}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <span className="ml-2 text-gray-600">Loading employees...</span>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-lg border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold">Employee</TableHead>
+                      <TableHead className="font-semibold">Contact</TableHead>
+                      <TableHead className="font-semibold">Personal Info</TableHead>
+                      <TableHead className="font-semibold">Employment</TableHead>
+                      <TableHead className="font-semibold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.employees?.map((employee) => (
+                      <TableRow key={employee.id} className="hover:bg-gray-50">
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium text-gray-900">
+                              {employee.fullName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              ID: {employee.id.slice(0, 8)}...
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center text-sm">
+                              <Phone className="mr-1 h-3 w-3 text-gray-400" />
+                              {employee.phoneNumber}
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <CreditCard className="mr-1 h-3 w-3 text-gray-400" />
+                              {employee.aadharNumber}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Badge className={getGenderBadge(employee.gender)}>
+                                {employee.gender}
+                              </Badge>
+                              <span className="text-sm text-gray-600">
+                                Age {employee.age}
+                              </span>
+                            </div>
+                            <Badge className={getMaritalStatusBadge(employee.maritalStatus)}>
+                              {employee.maritalStatus.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center text-sm font-medium">
+                              <IndianRupee className="mr-1 h-3 w-3 text-green-600" />
+                              {formatCurrency(employee.salary)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Joined: {formatDate(employee.createdAt)}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(employee)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Employee</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete {employee.fullName}? 
+                                    This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(employee.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                    disabled={deleteEmployee.isPending}
+                                  >
+                                    {deleteEmployee.isPending ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Deleting...
+                                      </>
+                                    ) : (
+                                      'Delete'
+                                    )}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {employees.map((employee) => (
-            <Card key={employee.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <Avatar>
-                  <AvatarFallback className="bg-indigo-500 text-white">
-                    {getInitials(employee.fullName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="space-y-1">
-                  <CardTitle>{employee.fullName}</CardTitle>
-                  <CardDescription className="line-clamp-1">
-                    {employee.workEmployedToDo}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Age</p>
-                    <p>{employee.age} years</p>
+              {/* Pagination */}
+              {data?.pagination && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+                  <div className="text-sm text-gray-600">
+                    Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, data.pagination.total)} of {data.pagination.total} employees
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Salary</p>
-                    <p className="font-medium">{formatSalary(employee.salary)}</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Badge variant="outline" className={getGenderColor(employee.gender)}>
-                    {employee.gender.toLowerCase()}
-                  </Badge>
-                  <Badge variant="outline" className={getMaritalStatusColor(employee.maritalStatus)}>
-                    {employee.maritalStatus.replace('-', ' ').toLowerCase()}
-                  </Badge>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Contact</p>
                   <div className="flex items-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-muted-foreground"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page - 1)}
+                      disabled={page === 1 || isFetching}
                     >
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
-                    <span>{employee.phoneNumber}</span>
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: data.pagination.totalPages }, (_, i) => i + 1)
+                        .filter(pageNum => {
+                          const start = Math.max(1, page - 2);
+                          const end = Math.min(data.pagination.totalPages, page + 2);
+                          return pageNum >= start && pageNum <= end;
+                        })
+                        .map(pageNum => (
+                          <Button
+                            key={pageNum}
+                            variant={pageNum === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setPage(pageNum)}
+                            disabled={isFetching}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page + 1)}
+                      disabled={page === data.pagination.totalPages || isFetching}
+                    >
+                      Next
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Aadhar Number</p>
-                  <p className="font-mono text-sm">{employee.aadharNumber}</p>
-                </div>
-              </CardContent>
-              
-              <CardFooter className="text-sm text-muted-foreground">
-                <p>
-                  Joined on{' '}
-                  {new Date(employee.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </p>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  )
-}
+  );
+};
+
+export default EmployeeList;
