@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Employee {
+  id                String   @id @default(cuid())
+  
+  // Personal Information
+  fullName          String   @map("full_name")
+  age               Int
+  gender            Gender
+  maritalStatus     MaritalStatus @map("marital_status")
+  
+  // Contact Information
+  phoneNumber       String   @map("phone_number") @db.VarChar(10)
+  aadharNumber      String   @unique @map("aadhar_number") @db.VarChar(12)
+  
+  // Employment Information
+  salary            Decimal  @db.Decimal(12, 2) // Supports larger salaries
+  workEmployedToDo  String   @map("work_employed_to_do") @db.Text // Job description field
+  
+  // Timestamps
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  @@map("employees")
+}
+
+enum Gender {
+  MALE   @map("male")
+  FEMALE @map("female")
+  OTHER  @map("other")
+  
+  @@map("gender")
+}
+
+enum MaritalStatus {
+  BACHELOR    @map("bachelor")
+  MARRIED     @map("married")
+  HAS_FAMILY  @map("has-family")
+  
+  @@map("marital_status")
+}
+
+// Optional: If you want to add validation constraints at the database level
+// You can also handle these in your application logic
+
+// Example of additional models you might need:
+
+// model Department {
+//   id          String     @id @default(cuid())
+//   name        String     @unique
+//   description String?
+//   employees   Employee[] @relation("EmployeeDepartment")
+//   createdAt   DateTime   @default(now()) @map("created_at")
+//   updatedAt   DateTime   @updatedAt @map("updated_at")
+//   
+//   @@map("departments")
+// }
+
+// If you want to link employees to departments later:
+// Add this field to the Employee model:
+// departmentId String?    @map("department_id")
+// department   Department? @relation("EmployeeDepartment", fields: [departmentId], references: [id])
+
+// Example of how to add indexes for better performance:
+// @@index([aadharNumber])
+// @@index([phoneNumber])
+// @@index([createdAt])
+
