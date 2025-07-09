@@ -55,6 +55,20 @@ enum MaritalStatus {
   @@map("marital_status")
 }
 
+model EggInventory {
+  id          String   @id @default(cuid())
+  date        DateTime @default(now()) // New: track daily data
+  crack_eggs  Int      
+  jumbo_eggs  Int      
+  normal_eggs Int      
+  total_eggs  Int      
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("egg_inventory")
+}
+
+
 // Optional: If you want to add validation constraints at the database level
 // You can also handle these in your application logic
 
