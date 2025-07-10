@@ -1,3 +1,4 @@
+import EggInventoryList from '@/components/EggInventoryList';
 import prisma from '@/lib/prisma'
 
 export default async function Home() {
